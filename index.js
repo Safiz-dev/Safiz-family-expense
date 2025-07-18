@@ -1,46 +1,56 @@
-import { useState, useEffect } from 'react';
-import { db } from '../utils/firebase';
-import { collection, addDoc, onSnapshot } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { db } from '../firebase';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
 export default function Home() {
   const [expenses, setExpenses] = useState([]);
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [location, setLocation] = useState('');
-  const [date, setDate] = useState('');
+  const [newExpense, setNewExpense] = useState({ name: '', amount: '' });
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'expenses'), snapshot => {
-      setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-    return () => unsubscribe();
+    const fetchData = async () => {
+      const querySnapshot = await getDocs(collection(db, 'expenses'));
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setExpenses(data);
+    };
+    fetchData();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addDoc(collection(db, 'expenses'), {
-      name, amount, location, date
-    });
-    setName(''); setAmount(''); setLocation(''); setDate('');
+    await addDoc(collection(db, 'expenses'), newExpense);
+    setNewExpense({ name: '', amount: '' });
+    const querySnapshot = await getDocs(collection(db, 'expenses'));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setExpenses(data);
   };
 
   return (
-    <main style={{ padding: 20 }}>
-      <h1>👨‍👩‍👧‍👦 Safiz Family Expense Tracker</h1>
-      <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-        <input placeholder="Name" value={name} onChange={e => setName(e.target.value)} required /><br />
-        <input placeholder="Amount" value={amount} onChange={e => setAmount(e.target.value)} required /><br />
-        <input placeholder="Location" value={location} onChange={e => setLocation(e.target.value)} required /><br />
-        <input type="date" value={date} onChange={e => setDate(e.target.value)} required /><br />
+    <div>
+      <h1>Safiz Family Expense Tracker</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Expense Name"
+          value={newExpense.name}
+          onChange={(e) => setNewExpense({ ...newExpense, name: e.target.value })}
+          required
+        />
+        <input
+          type="number"
+          placeholder="Amount"
+          value={newExpense.amount}
+          onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+          required
+        />
         <button type="submit">Add Expense</button>
       </form>
       <ul>
-        {expenses.map(exp => (
-          <li key={exp.id}>
-            {exp.date} - {exp.name} spent ৳{exp.amount} at {exp.location}
+        {expenses.map((expense) => (
+          <li key={expense.id}>
+            {expense.name} - ৳{expense.amount}
           </li>
         ))}
       </ul>
-    </main>
+    </div>
   );
 }
