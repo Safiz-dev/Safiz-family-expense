@@ -8,10 +8,8 @@ const firebaseConfig = {
   projectId: "safiz-family-portal-a1855",
   storageBucket: "safiz-family-portal-a1855.appspot.com",
   messagingSenderId: "397644387764",
-  appId: "1:397644387764:web:af6275bf2c4410dbf34ee1",
-  measurementId: "G-33G3B617Y6"
+  appId: "1:397644387764:web:af6275bf2c4410dbf34ee1"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-export { db };
+export const db = getFirestore(app);
